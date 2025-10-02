@@ -5,19 +5,20 @@ use rusqlite::{Connection, Result};
 struct Cli {
     #[command(subcommand)]
     commands: Commands,
-
-    name: String,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    Spend { amount: Option<u32> },
+    Spend(Payment),
     Show,
 }
 
-#[derive(Debug)]
+#[derive(Parser, Debug)]
 struct Payment {
+    #[arg(short, long)]
     name: String,
+
+    #[arg(short, long)]
     amount: u32,
 }
 
@@ -35,19 +36,14 @@ fn main() -> Result<()> {
     )?;
 
     match &cli.commands {
-        Commands::Spend { amount } => {
-            let spend_pay = Payment {
-                name: cli.name,
-                amount: amount.unwrap(),
-            };
-            println!("{:?}", spend_pay.name);
+        Commands::Spend(payment) => {
+            println!("{:?}", payment.name);
             conn.execute(
                 "INSERT INTO payments (name, amount) VALUES (?1, ?2)",
-                (&spend_pay.name, &spend_pay.amount),
+                (&payment.name, &payment.amount),
             )?;
         }
         Commands::Show => {
-            // Fetch rows
             let mut stmt = conn.prepare("SELECT name, amount FROM payments")?;
             let person_iter = stmt.query_map([], |row| {
                 Ok(Payment {
@@ -55,9 +51,8 @@ fn main() -> Result<()> {
                     amount: row.get(1)?,
                 })
             })?;
-            // Print results
-            for Payment in person_iter {
-                println!("Found person {:?}", Payment?);
+            for payment in person_iter {
+                println!("Found payment {:?}", payment?);
             }
         }
     }
