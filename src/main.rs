@@ -11,10 +11,14 @@ struct Cli {
 enum Commands {
     Spend(Payment),
     Show,
+    Remove { id: u32 },
 }
 
 #[derive(Parser, Debug)]
 struct Payment {
+    #[arg(short, long)]
+    id: Option<u32>,
+
     #[arg(short, long)]
     name: String,
 
@@ -37,23 +41,28 @@ fn main() -> Result<()> {
 
     match &cli.commands {
         Commands::Spend(payment) => {
-            println!("{:?}", payment.name);
             conn.execute(
                 "INSERT INTO payments (name, amount) VALUES (?1, ?2)",
                 (&payment.name, &payment.amount),
             )?;
         }
         Commands::Show => {
-            let mut stmt = conn.prepare("SELECT name, amount FROM payments")?;
+            let mut stmt = conn.prepare("SELECT id, name, amount FROM payments")?;
             let person_iter = stmt.query_map([], |row| {
                 Ok(Payment {
-                    name: row.get(0)?,
-                    amount: row.get(1)?,
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    amount: row.get(2)?,
                 })
             })?;
             for payment in person_iter {
                 println!("Found payment {:?}", payment?);
             }
+        }
+        Commands::Remove { id } => {
+            // TODO add remove functionality
+            let mut stmt = conn.prepare("DELETE FROM payments WHERE id=(?1)")?;
+            stmt.execute([id])?;
         }
     }
     Ok(())
