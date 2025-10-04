@@ -30,8 +30,15 @@ pub fn list_payment(conn: &mut Connection) -> Result<()> {
             amount: row.get(2)?,
         })
     })?;
+    println!("| ID | Name | Amount |",);
     for payment in person_iter {
-        println!("Found payment {:?}", payment?);
+        let paymetn_row = payment.unwrap().clone();
+        println!(
+            "| {:?} | {:?} | {:?} |",
+            paymetn_row.id.unwrap(),
+            paymetn_row.name,
+            paymetn_row.amount
+        );
     }
     Ok(())
 }
@@ -41,4 +48,3 @@ pub fn remove_payment(conn: &mut Connection, id: &u32) -> Result<()> {
     stmt.execute([id])?;
     Ok(())
 }
-

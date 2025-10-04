@@ -1,8 +1,7 @@
 use clap::Parser;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 pub struct Payment {
-    // TODO find better way do id so its not optional key
     #[arg(short, long)]
     pub id: Option<u32>,
 
