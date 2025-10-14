@@ -1,6 +1,8 @@
+use anyhow::Result;
 use clap::{Parser, Subcommand};
-use rusqlite::{Connection, Result};
+use rusqlite::Connection;
 mod payment_type;
+mod server;
 mod sql;
 
 #[derive(Parser)]
@@ -14,6 +16,7 @@ enum Commands {
     Spend(payment_type::Payment),
     Show,
     Remove { id: u32 },
+    Serve,
 }
 
 fn main() -> Result<()> {
@@ -32,6 +35,7 @@ fn main() -> Result<()> {
         Commands::Remove { id } => {
             sql::remove_payment(&mut conn, id)?;
         }
+        Commands::Serve => server::run()?,
     }
     Ok(())
 }

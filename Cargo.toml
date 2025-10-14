@@ -6,3 +6,5 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.5.48", features = ["derive"] }
 rusqlite = "0.37.0"
+actix-web = "4"
+anyhow = "1.0.100"
