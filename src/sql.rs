@@ -1,4 +1,4 @@
-use crate::payment_type;
+use crate::payment_type::{self, Payment};
 use rusqlite::{Connection, Result};
 
 pub fn create(conn: &mut Connection) -> Result<()> {
@@ -23,7 +23,7 @@ pub fn insert_payment(conn: &mut Connection, payment: &payment_type::Payment) ->
 
 pub fn list_payment(conn: &mut Connection) -> Result<()> {
     let mut stmt = conn.prepare("SELECT id, name, amount FROM payments")?;
-    let person_iter = stmt.query_map([], |row| {
+    let payments_iter = stmt.query_map([], |row| {
         Ok(payment_type::Payment {
             id: row.get(0)?,
             name: row.get(1)?,
@@ -31,7 +31,7 @@ pub fn list_payment(conn: &mut Connection) -> Result<()> {
         })
     })?;
     println!("| ID | Name | Amount |",);
-    for payment in person_iter {
+    for payment in payments_iter {
         let paymetn_row = payment.unwrap().clone();
         println!(
             "| {:?} | {:?} | {:?} |",
@@ -41,6 +41,28 @@ pub fn list_payment(conn: &mut Connection) -> Result<()> {
         );
     }
     Ok(())
+}
+
+pub fn get_payments(conn: &mut Connection) -> Result<Vec<Payment>> {
+    let mut stmt = conn.prepare("SELECT id, name, amount FROM payments")?;
+    let mut payments: Vec<Payment> = vec![];
+    let payments_iter = stmt.query_map([], |row| {
+        Ok(payment_type::Payment {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            amount: row.get(2)?,
+        })
+    })?;
+    for payment in payments_iter {
+        let payment_row = payment.unwrap().clone();
+        let item = Payment {
+            id: payment_row.id,
+            name: payment_row.name,
+            amount: payment_row.amount,
+        };
+        payments.push(item);
+    }
+    Ok(payments)
 }
 
 pub fn remove_payment(conn: &mut Connection, id: &u32) -> Result<()> {
